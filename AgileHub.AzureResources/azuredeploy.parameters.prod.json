@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sites_agilehubapi_name": {
+      "value": "agilehubapi-prod"
+    },
+    "webApi_rootUrl": {
+      "value": "https://agilehubapi-prod.azurewebsites.net"
+    },
+    "sites_agilehubapi_sslHostName": {
+      "value": "agilehubapi"
+    },
+    "webApi_isEmailSendingEnabled": {
+      "value": "True"
+    },
+    "components_agilehubapi_appInsights_name": {
+      "value": "agilehubapi-appInsights-prod"
+    },
+    "environment": {
+      "value": "Production"
+    },
+    "serverFarms_name": {
+      "value": "agilehubapi-appServicePlan-prod"
+    },
+    "serverFarms_sku_name": {
+      "value": "B1"
+    },
+    "serverFarms_sku_capacity": {
+      "value": 1
+    }
+  }
+}

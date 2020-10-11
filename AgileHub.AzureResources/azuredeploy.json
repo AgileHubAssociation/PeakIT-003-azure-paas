@@ -1,0 +1,134 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sites_agilehubapi_name": {
+      "defaultValue": "agilehubapi",
+      "type": "String"
+    },
+    "components_agilehubapi_appInsights_name": {
+      "defaultValue": "agilehubapi-appInsights",
+      "type": "String"
+    },
+    "webApi_isEmailSendingEnabled": {
+      "defaultValue": "True",
+      "type": "String"
+    },
+    "environment": {
+      "defaultValue": "Development",
+      "type": "String"
+    },
+    "serverFarms_name": {
+      "type": "String"
+    },
+    "serverFarms_sku_name": {
+      "type": "String",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and capacity. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "serverFarms_sku_capacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "metadata": {
+        "description": "Describes plan's instance count"
+      }
+    },
+    "sites_agilehubapi_sslHostName": {
+      "type": "String"
+    },
+    "webApi_rootUrl": {
+      "type": "String"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[parameters('serverFarms_name')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "HostingPlan"
+      },
+      "sku": {
+        "name": "[parameters('serverFarms_sku_name')]",
+        "capacity": "[parameters('serverFarms_sku_capacity')]"
+      },
+      "properties": {
+        "name": "[parameters('serverFarms_name')]"
+      }
+    },
+    {
+      "apiVersion": "2015-08-01",
+      "name": "[parameters('sites_agilehubapi_name')]",
+      "type": "Microsoft.Web/sites",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('serverFarms_name'))]": "Resource",
+        "displayName": "Website"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms/', parameters('serverFarms_name'))]",
+        "[resourceId('microsoft.insights/components/', parameters('components_agilehubapi_appInsights_name'))]"
+      ],
+      "properties": {
+        "name": "[parameters('sites_agilehubapi_name')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverFarms_name'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-08-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('sites_agilehubapi_name'))]",
+            "Microsoft.ApplicationInsights.AzureWebSites"
+          ],
+          "properties": {
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', parameters('components_agilehubapi_appInsights_name'))).InstrumentationKey]",
+            "IsEmailSendingEnabled": "[parameters('webApi_isEmailSendingEnabled')]"
+          }
+        },
+        {
+          "apiVersion": "2015-08-01",
+          "name": "Microsoft.ApplicationInsights.AzureWebSites",
+          "type": "siteextensions",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', parameters('sites_agilehubapi_name'))]"
+          ],
+          "properties": {
+          }
+        }
+      ]
+    },
+    {
+      "apiVersion": "2014-04-01",
+      "name": "[parameters('components_agilehubapi_appInsights_name')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('sites_agilehubapi_name'))]": "Resource",
+        "displayName": "AppInsightsComponent"
+      },
+      "properties": {
+        "applicationId": "[parameters('components_agilehubapi_appInsights_name')]"
+      }
+    }
+  ]
+}
